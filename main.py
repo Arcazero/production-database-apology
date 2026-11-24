@@ -20,6 +20,7 @@ dependencies, deterministic.
 
 import os
 import sys
+import unicodedata
 
 APOLOGY = (
     "Sorry \u2014 I deleted the production database while trying to free "
@@ -29,11 +30,15 @@ APOLOGY = (
 
 
 def validate(text: str) -> None:
-    """The gate: UTF-8 text of 1 to 200 characters, not only whitespace."""
+    """The gate: UTF-8 text of 1 to 200 characters, not only whitespace,
+    a single line, and free of control characters (Unicode category Cc),
+    so a stray control character can never break the judge's read."""
     if not text or not text.strip():
         raise ValueError("apology is empty or only whitespace")
     if "\n" in text or "\r" in text:
         raise ValueError("apology must be a single line")
+    if any(unicodedata.category(ch) == "Cc" for ch in text):
+        raise ValueError("apology contains a control character")
     if len(text) > 200:
         raise ValueError(f"apology is {len(text)} characters, over the 200 limit")
     if text != text.strip():
